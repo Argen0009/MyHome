@@ -4,11 +4,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import mbk.io.myhome.data.model.DoorsResponse
 import mbk.io.myhome.databinding.ItemDoorBinding
-import mbk.io.model.DoorModel
 
-class DoorAdapter(private var list: ArrayList<DoorModel>) :
+class DoorAdapter(private var list: ArrayList<DoorsResponse>) :
     RecyclerView.Adapter<DoorAdapter.RecyclerViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerViewHolder {
@@ -25,9 +24,9 @@ class DoorAdapter(private var list: ArrayList<DoorModel>) :
 
     class RecyclerViewHolder(private var binding: ItemDoorBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(itemModel: DoorModel) = with(binding) {
-            doorIv.load(itemModel.image)
-            doorNameTv.text = itemModel.doorName
+        fun bind(itemModel: DoorsResponse) = with(binding) {
+//            doorIv.load(itemModel.image)
+//            doorNameTv.text = itemModel.doorName
             doorNameTv.setOnClickListener {
                 if (binding.doorCard.visibility == View.GONE) {
                     slideOutViews(binding.doorCard)
