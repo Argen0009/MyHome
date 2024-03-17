@@ -23,8 +23,7 @@ class RMRepository @Inject constructor(private val api: ApiService, private val 
     fun getDoors(): LiveData<com.geeks.smarthome.data.Resource<DoorModel>> = apiRequest {
         api.getDoors().body()!!
     }
-
-       override suspend fun getDBCameras(): List<CameraEntity> = db.cameraDao().getAll()
+    suspend fun getDBCameras(): List<CameraEntity> = db.cameraDao().getAll()
 
     suspend fun clearAll() = db.cameraDao().clearAll()
     suspend fun deleteCamera(cameraEntity: CameraEntity) = db.cameraDao().delete(cameraEntity)
