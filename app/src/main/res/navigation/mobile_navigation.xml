@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/navigation_camera"
-        android:name="mbk.io.myhome.ui.camera.CameraFragment"
+        android:name="mbk.io.myhome.presentor/ui.camera.CameraFragment"
         android:label="@string/Camera"
         tools:layout="@layout/fragment_camera"/>
 
     <fragment
         android:id="@+id/navigation_door"
-        android:name="mbk.io.myhome.ui.door.DoorFragment"
+        android:name="mbk.io.myhome.presentor/ui.door.DoorFragment"
         android:label="@string/Door"
         tools:layout="@layout/fragment_door"/>
 

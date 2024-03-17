@@ -1,11 +1,11 @@
-package mbk.io.myhome.ui.home
+package mbk.io
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import mbk.io.myhome.databinding.ActivityMainBinding
-import mbk.io.myhome.ui.adapter.mainAdapter
-import mbk.io.myhome.ui.door.DoorFragment
-import mbk.io.myhome.ui.camera.CameraFragment
+import mbk.io.myhome.presentora.adapter.mainAdapter
+import mbk.io.myhome.presentora.door.DoorFragment
+import mbk.io.myhome.presentora.camera.CameraFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,11 +18,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val adapter = mainAdapter(supportFragmentManager)
-        adapter.addFragment(CameraFragment(),"Camera")
-        adapter.addFragment(DoorFragment(),"Door")
-
+        adapter.addFragment(CameraFragment(), "Camera")
+        adapter.addFragment(DoorFragment(), "Door")
 
         binding.viewPager.adapter = adapter
         binding.tabLiyayot.setupWithViewPager(binding.viewPager)
     }
-}
+} 
