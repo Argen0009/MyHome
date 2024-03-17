@@ -24,7 +24,7 @@ class RMRepository @Inject constructor(private val api: ApiService, private val 
         api.getDoors().body()!!
     }
 
-   override suspend fun getDBCameras(): List<CameraEntity> = db.cameraDao().getAll()
+       override suspend fun getDBCameras(): List<CameraEntity> = db.cameraDao().getAll()
 
     suspend fun clearAll() = db.cameraDao().clearAll()
     suspend fun deleteCamera(cameraEntity: CameraEntity) = db.cameraDao().delete(cameraEntity)
