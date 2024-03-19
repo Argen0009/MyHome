@@ -14,8 +14,9 @@ import javax.inject.Inject
 class DoorViewModel @Inject constructor(private val doorUseCase: GetDoorUseCase) : ViewModel() {
     fun getDoors(): LiveData<Resource<DoorModel>> = doorUseCase.getDoors()
 
-    suspend fun getCameras(): List<DoorEntity> = doorUseCase.getDBDoors()
+    suspend fun getDBDoors(): List<DoorEntity> = doorUseCase.getDBDoors()
 
+    suspend fun deleteDoor(doorEntity: DoorEntity) = doorUseCase.deleteDoor(doorEntity)
 
     suspend fun clearAll() = doorUseCase.clearAll()
 

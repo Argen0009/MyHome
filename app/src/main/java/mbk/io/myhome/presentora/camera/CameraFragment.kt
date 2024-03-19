@@ -38,12 +38,42 @@ class CameraFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
             0,
-            ItemTouchHelper.RIGHT)
+            ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                // для перетаскивания элементов
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val deletedCamera = adapter.currentList[position]
+
+                lifecycleScope.launch {
+                    viewModel.deleteCamera(deletedCamera)
+                    val updatedList = adapter.currentList.toMutableList().apply {
+                        removeAt(position)
+                    }
+                    adapter.submitList(updatedList)
+                    Log.e("ololo", "onSwiped: $updatedList")
+                }
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.rvCamera)
+
         binding.rvCamera.adapter = adapter
+
         CoroutineScope(Dispatchers.IO).launch {
-            list = App.db.cameraDao().getAll()
+            list = viewModel.getDBCameras()
             withContext(Dispatchers.Main) {
                 if (list.isEmpty()) {
                     getData()
@@ -53,29 +83,20 @@ class CameraFragment : BaseFragment() {
                 }
             }
         }
-    }
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        val position = viewHolder.adapterPosition
-        val deletedCamera = adapter.currentList[position]
 
-        lifecycleScope.launch {
-            viewModel.deleteCamera(deletedCamera)
-            val updatedList = adapter.currentList.toMutableList().apply {
-                removeAt(position)
-            }
-            adapter.submitList(updatedList)
-            Log.e("ololo", "onSwiped: $updatedList")
+
+        binding.swiperefresh.setOnRefreshListener {
+            getData()
         }
+
     }
-}
 
     fun getData() {
         viewModel.getCameras().stateHandler(
             success = { it ->
                 val list = it.data.cameras
-                Log.e("ololo", "List of cameraModels: ${list.toString()}")
                 CoroutineScope(Dispatchers.IO).launch {
-                    App.db.cameraDao().clearAll()
+                    viewModel.clearAll()
                     list.forEach {
                         val camera = CameraEntity(
                             favorites = it.favorites,
@@ -84,12 +105,10 @@ class CameraFragment : BaseFragment() {
                             room = it.room,
                             snapshot = it.snapshot
                         )
-                        Log.e("ololo", "camera : ${camera.toString()}")
-                        App.db.cameraDao().insertCamera(camera)
+                        viewModel.insertCamera(camera)
                     }
                     withContext(Dispatchers.Main) {
-                        val listDB = App.db.cameraDao().getAll()
-                        Log.e("ololo", "List of cameraEntiies: ${listDB.toString()}")
+                        val listDB = viewModel.getDBCameras()
                         adapter.submitList(listDB)
                         adapter.notifyDataSetChanged()
                     }
@@ -97,26 +116,4 @@ class CameraFragment : BaseFragment() {
             }
         )
     }
-    val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-    itemTouchHelper.attachToRecyclerView(binding.rvCameras)
-
-    binding.rvCameras.adapter = adapter
-
-    CoroutineScope(Dispatchers.IO).launch {
-        list = viewModel.getDBCameras()
-        withContext(Dispatchers.Main) {
-            if (list.isEmpty()) {
-                getData()
-            } else {
-                adapter.submitList(list)
-                adapter.notifyDataSetChanged()
-            }
-        }
-    }
-
-
-    binding.swiperefresh.setOnRefreshListener {
-        getData()
-    }
-
 }

@@ -6,7 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
-import com.geeks.smarthome.presentor.ui.door_activity.adapter.DoorAdapter
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import mbk.io.myhome.presentora.adapter.DoorAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,9 +37,41 @@ class DoorFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.RIGHT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                // для перетаскивания элементов
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val deletedDoor = adapter.currentList[position]
+
+                lifecycleScope.launch {
+                    viewModel.deleteDoor(deletedDoor)
+                    val updatedList = adapter.currentList.toMutableList().apply {
+                        removeAt(position)
+                    }
+                    adapter.submitList(updatedList)
+                    Log.e("ololo", "onSwiped: $updatedList")
+                }
+            }
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.rvDoor)
+
         binding.rvDoor.adapter = adapter
         CoroutineScope(Dispatchers.IO).launch {
-            list = App.db.doorDao().getAll()
+            list = viewModel.getDBDoors()
             withContext(Dispatchers.Main) {
                 if (list.isEmpty()) {
                     getData()
@@ -46,15 +81,18 @@ class DoorFragment : BaseFragment() {
                 }
             }
         }
+
+        binding.swiperefresh.setOnRefreshListener {
+            getData()
+        }
     }
 
     fun getData() {
-        viewModel.getCameras().stateHandler(
+        viewModel.getDoors().stateHandler(
             success = { it ->
                 val list = it.data
-                Log.e("ololo", "List of doorModels: ${list.toString()}")
                 CoroutineScope(Dispatchers.IO).launch {
-                    App.db.doorDao().clearAll()
+                    viewModel.clearAll()
                     list.forEach {
                         val door = DoorEntity(
                             favorites = it.favorites,
@@ -62,12 +100,10 @@ class DoorFragment : BaseFragment() {
                             room = it.room,
                             snapshot = it.snapshot
                         )
-                        Log.e("ololo", "door: ${door.toString()}")
-                        App.db.doorDao().insertDoor(door)
+                        viewModel.insert(door)
 
                     }
-                    val listDB = App.db.doorDao().getAll()
-                    Log.e("ololo", "List of doorEntiies: ${listDB.toString()}")
+                    val listDB = viewModel.getDBDoors()
                     withContext(Dispatchers.Main) {
                         adapter.submitList(listDB)
                         adapter.notifyDataSetChanged()
